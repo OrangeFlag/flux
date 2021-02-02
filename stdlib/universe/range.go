@@ -96,7 +96,6 @@ func newRangeProcedure(qs flux.OperationSpec, pa plan.Administration) (plan.Proc
 	if spec.TimeColumn == "" {
 		spec.TimeColumn = execute.DefaultTimeColLabel
 	}
-
 	bounds := flux.Bounds{
 		Start: spec.Start,
 		Stop:  spec.Stop,
@@ -110,7 +109,6 @@ func newRangeProcedure(qs flux.OperationSpec, pa plan.Administration) (plan.Proc
 	} else if bounds.IsEmpty() {
 		return nil, errors.New(codes.Invalid, "cannot query an empty range")
 	}
-
 	return &RangeProcedureSpec{
 		Bounds:      bounds,
 		TimeColumn:  spec.TimeColumn,
@@ -145,8 +143,15 @@ func createRangeTransformation(id execute.DatasetID, mode execute.AccumulationMo
 	d := execute.NewDataset(id, mode, cache)
 
 	bounds := a.StreamContext().Bounds()
+	e := execute.Bounds{}
+	if bounds != nil {
+		e = execute.Bounds{
+			Start: bounds.Start(),
+			Stop:  bounds.Stop(),
+		}
+	}
 
-	t, err := NewRangeTransformation(d, cache, s, *bounds)
+	t, err := NewRangeTransformation(d, cache, s, e)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -12,6 +12,7 @@ import (
 	"github.com/influxdata/flux"
 	"github.com/influxdata/flux/codes"
 	"github.com/influxdata/flux/internal/errors"
+	"github.com/influxdata/flux/interval"
 	"github.com/influxdata/flux/memory"
 	"github.com/influxdata/flux/metadata"
 	"github.com/influxdata/flux/plan"
@@ -44,11 +45,16 @@ func NewExecutor(logger *zap.Logger) Executor {
 }
 
 type streamContext struct {
-	bounds *Bounds
+	bounds        *interval.Bounds
+	executeBounds *Bounds
 }
 
-func (ctx streamContext) Bounds() *Bounds {
+func (ctx streamContext) Bounds() *interval.Bounds {
 	return ctx.bounds
+}
+
+func (ctx streamContext) ExecuteBounds() *Bounds {
+	return ctx.executeBounds
 }
 
 type executionState struct {
@@ -165,10 +171,11 @@ func (v *createExecutionNodeVisitor) Visit(node plan.Node) error {
 	// Add explicit stream context if bounds are set on this node
 	var streamContext streamContext
 	if node.Bounds() != nil {
-		streamContext.bounds = &Bounds{
+		streamContext.executeBounds = &Bounds{
 			Start: node.Bounds().Start,
 			Stop:  node.Bounds().Stop,
 		}
+		streamContext.bounds = interval.NewBounds(node.Bounds().Start, node.Bounds().Stop)
 	}
 
 	// Build execution context

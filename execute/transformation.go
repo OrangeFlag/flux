@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/influxdata/flux"
+	"github.com/influxdata/flux/interval"
 	"github.com/influxdata/flux/memory"
 	"github.com/influxdata/flux/plan"
 )
@@ -87,7 +88,7 @@ func (ts TransformationSet) Finish(id DatasetID, err error) {
 // StreamContext represents necessary context for a single stream of
 // query data.
 type StreamContext interface {
-	Bounds() *Bounds
+	Bounds() *interval.Bounds
 }
 
 type Administration interface {
